@@ -1,0 +1,430 @@
+﻿@model SocialNetwork.Models.User;
+@using System.Linq;
+@using Microsoft.EntityFrameworkCore;
+@{
+    var avatarPath = ViewData["AvatarPath"] as string;
+}
+
+<div class="row">
+  <div class="col-sm-4">
+      <div class="item-bg p-0" style="width:100%; position: relative; align-items:center"/>
+          <img style="max-width:100%; max-height:100%; border-radius: 0.3rem;" src=@avatarPath onmouseover="$('#edit-avatar-div').fadeIn(250).css('display', 'flex')" />
+          @if(User.Identity.IsAuthenticated)
+          {
+              @if(User.Claims.FirstOrDefault(c => c.Type == "userId").Value == Model.Id.ToString())
+              {
+                  <div 
+                   id="edit-avatar-div" 
+                   class="p-0 m-0" 
+                   style="background-color:rgba(0, 0, 0, 0.5); width:100%; height: 100%; position:absolute; top: 0; left:0; 
+                   text-align:center; display:flex; flex-direction:column; justify-content:center;">
+                      <a class="p-2 text-info" style="text-decoration:none; text-transform:uppercase; font-size:1.25vw;" onclick="$('#avatar-input').click();">
+                          <i class="bi bi-upload"></i> Upload new
+                      </a>
+
+                      <input id="avatar-input" type="file" style="display:none;" accept="image/*">
+
+                      <a class="p-2 text-danger" style="text-decoration:none; text-transform:uppercase; font-size:1.25vw;" onclick="deleteAvatar()">
+                          <i class="bi bi-trash"></i> Delete
+                      </a>
+                  </div>
+                  
+              }
+          }
+      </div>
+  </div>
+  <div class="col-sm-8" style="padding-left: 0;">
+      <div class="item-bg p-3" style="width:100%; height:100%; position:relative;">
+          <h3 style="position:relative;">
+              @Model.Nickname 
+              @if(Model.IsAdmin){
+                  <i class="bi bi-check-circle" style="color:#6247AA;" data-bs-toggle="tooltip" data-bs-placement="right" title="Site administrator"></i>
+              }
+                  <p class="p-0" style="font-size:1rem; color:gray; font-family: 'Roboto Mono', monospace;">
+                      Joined: @Model.CreatedDateTime.ToString("dddd, dd MMMM yyyy")<br />
+                      <span id="Online" class="p-0" style="font-size:1rem; color:gray; font-family: 'Roboto Mono', monospace; white-space:nowrap;">Currently -</span>
+                  </p>
+                  
+          </h3>
+          <h4 style="font-weight:300; position: relative;">
+              <i class="bi bi-info-circle-fill"></i> ABOUT:
+                <p id="about-info" style="font-size:1rem; position: relative;" class="text-wrap text-break">
+                    @(Model.AboutText.Length > 0 ? Model.AboutText : "no about info :(")
+                    <div id="about-info-edit" class="p-1 rainbow-border" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; display:none;">
+                        <div class="text-wrap text-break" id="newStatus" contenteditable style="height:90%; width:100%; font-size:1rem; overflow-y:scroll;">@Model.AboutText</div>
+                        <div style="width:100%; height:10%;">
+                            <button class="btn btn-success" onclick="saveStatus()">Save</button>
+                            <button class="btn btn-danger" onclick="hideAboutEdit()">Discard</button>
+                            <div id="aboutLoading" class="spinner-border text-info" style="display:none;" role="status"></div>
+                        </div>
+                        
+                     </div>
+                </p>
+
+                @if(User.Identity.IsAuthenticated)
+                {
+                    @if(User.Claims.FirstOrDefault(c => c.Type == "userId").Value == Model.Id.ToString())
+                    {
+                        <a class="p-2" style="position:absolute; right:0px; top:-0.45rem; text-decoration:none; font-size:1.25rem;" onclick="showAboutEdit();">
+                            <i class="bi bi-pencil"></i> EDIT
+                        </a>
+                    }
+                }
+          </h4>
+      </div>
+  </div>
+
+</div>
+
+
+@*Enable publish button*@
+@if(User.Identity.IsAuthenticated)
+{
+    @if(User.Claims.FirstOrDefault(c => c.Type == "userId").Value == Model.Id.ToString())
+    {
+        <div class="item-bg mt-2 p-3" style="width:100%;">
+
+           <form action="/api/post" method="post" enctype="multipart/form-data">
+                <div style="position:relative; width:100%; height:8rem; border:0.1rem solid #6247AA;">
+                    <div style="position: absolute; right:0; bottom:0; font-size:1.25rem;">
+
+                        <input id="postContent" class="form-control" type="text" name="content" style="display:none;"/>
+                        <input id="postFiles" class="form-control" type="file" name="files" multiple style="display:none;">
+                        <input id="submitPostBtn" class="form-control" type="submit" style="display:none;" />
+                        <input type="checkbox" name="browserRequest" value="true" checked style="display:none;">
+
+                        <label class="btn btn-primary" for="postFiles">
+                            <i class="bi bi-send-plus-fill"></i>
+                            Add files
+                        </label>
+                        <label class="btn btn-primary" for="submitPostBtn"> 
+                            <i class="bi bi-send-fill"></i> 
+                            Send 
+                        </label>
+
+                    </div>
+                    <div 
+                    id = "PostInputContent"
+                    class="text-break text-wrap p-1" 
+                    style="width:100%; height:70%; overflow-y:scroll; cursor:text;" 
+                    contenteditable spellcheck 
+                    oninput="PostInputOnChange()">
+
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    }  
+}
+
+<!--Load Posts -->
+@if(Model.Posts.Count() > 0)
+{
+    @foreach(var post in Model.Posts.Reverse())
+    {
+        <div class="item-bg mt-2 p-3" style="width:100%; position: relative;">
+            <div style="font-size:1.5rem;"> <img style="width:3rem; height:3rem; border-radius:2rem;" src=@avatarPath /> @post.User.Nickname</div>
+            <div class="post-content">@post.Content</div>
+            @if(!string.IsNullOrEmpty(post.FilesDirs[0]))
+            {
+                <p>Attached files (@post.FilesDirs.Length):</p>
+
+                for(int i = 0; i < post.FilesDirs.Count(); i++)
+                {
+                    var fileExt = @post.FilesDirs[i].Split('\\').Last().Split('.').Last();
+
+                    <a href="@post.FilesDirs[i]" download="@post.FilesDirs[i].Split('\\').Last()" type="application/octet-stream">Download</a>
+
+                    <a href="@post.FilesDirs[i]">
+                        @switch (fileExt)
+                        {
+                            case "jpg":
+                            case "jpeg":
+                            case "png":
+                            case "gif":
+                            <img src="@post.FilesDirs[i]" style="max-height:10rem; max-height:10rem;"/>
+                            break;
+
+                            case "mp4":
+                            case "avi":
+                            <video src="@post.FilesDirs[i]" style="max-height:10rem; max-height:10rem;"></video>
+                            break;
+
+                            case "mp3":
+                            <audio src="@post.FilesDirs[i]"></audio>
+                            break;
+
+                            default:
+                            @post.FilesDirs[i].Split('\\').Last()
+                            break;
+                        }
+                    </a>
+                }
+            }
+
+            <div>
+
+                @if(post.GetEmotionForUser(Model.Id) == null)
+                {
+                    <button 
+                     class="disabled-btn btn btn-outline-info"
+                     onclick="SetEmotion(@post.Id, true, this)">
+                        Like (<span class="m-0 p-0" style="">@post.GetLikesCount()</span>)
+                    </button>
+
+                    <button 
+                     class="disabled-btn btn btn-outline-danger" 
+                     onclick="SetEmotion(@post.Id, false, this)">
+                        Dislike (<span class="m-0 p-0" style="">@post.GetDislikesCount()</span>)
+                    </button>
+                }
+                else if(post.GetEmotionForUser(Model.Id) == false)
+                {
+                    <button 
+                     class="disabled-btn btn btn-outline-info"
+                     onclick="SetEmotion(@post.Id, true, this)">
+                        Like (<span class="m-0 p-0" style="">@post.GetLikesCount()</span>)
+                    </button>
+
+                    <button 
+                     class="active-btn btn btn-danger" 
+                     onclick="SetEmotion(@post.Id, false, this)">
+                        Dislike (<span class="m-0 p-0" style="">@post.GetDislikesCount()</span>)
+                    </button>
+                }
+                else
+                {
+                    <button 
+                     class="active-btn btn btn-info"
+                     onclick="SetEmotion(@post.Id, true, this)">
+                        Like (<span class="m-0 p-0" style="">@post.GetLikesCount()</span>)
+                    </button>
+
+                    <button 
+                     class="disabled-btn btn btn-outline-danger" 
+                     onclick="SetEmotion(@post.Id, false, this)">
+                        Dislike (<span class="m-0 p-0" style="">@post.GetDislikesCount()</span>)
+                    </button>
+                }
+            </div>
+
+            <p id="postCreatedDate" class="p-0 m-0" style="font-size:0.75rem; position: relative; z-index:1; top:0.5rem;">Published @post.CreatedDate</p>
+            @if (post.IsEdited)
+            {
+                <p id="postEditedDate" class="p-0 m-0" style="font-size:0.75rem; position: relative; z-index:1;">Edited @post.EditedTime</p>
+            }
+
+            @if(User.Identity.IsAuthenticated)
+            {
+                @if(User.Claims.FirstOrDefault(c => c.Type == "userId").Value == Model.Id.ToString())
+                {
+                    <a @*href="/api/post/@post.Id"*@ href="javascript:PostDelete(@post.Id)" class="p-2" style="position:absolute; right:0px; top:0px; color:red; text-decoration:none;">
+                        <i class="bi bi-trash"></i> Delete
+                    </a>
+                    <a href="#" class="p-2" style="position:absolute; right:0px; top:1.15rem; color:gray; text-decoration:none;">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                }
+            }
+        </div>
+    }
+}
+else
+{
+    <div class="item-bg mt-2 p-3" style="width:100%; position: relative; text-align:center;">
+        There are no posts here yet :(
+    </div>
+}
+
+<script>
+    $('#edit-avatar-div').hide(0);
+
+    var urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    const allowedExtensions = [ "png", "jpg", "jpeg", "gif"]
+
+    var aboutElem = $("#about-info");
+
+    function showAboutEdit(){
+        $("#about-info-edit").fadeIn();
+    }
+
+    function hideAboutEdit(){
+        $("#about-info-edit").fadeOut();
+    }
+
+    function PostDelete(postId){
+        fetch(`/api/post/${postId}`, {
+            method: "DELETE",
+            credentials: "same-origin",
+        })
+        .then(response => {
+            if(response.status === 200){
+                location.reload();
+            }
+            else{
+                throw "not succ :(";
+            }
+        })
+        .catch( error => { 
+            NotifyBad("Failed to delete post :(");
+        })
+    }
+
+    function saveStatus(){
+
+        $("#aboutLoading").show();
+
+        fetch(`/api/u/Status?newStatus=${$("#newStatus").text()}`, {
+            method: "PUT",
+            credentials: "same-origin",
+        })
+        .then(response => {
+            if(response.status === 200){
+                NotifySucc("Status changed successfully!");
+                $("#about-info").text($("#newStatus").text());
+            }
+            else{
+                throw "not succ :(";
+            }
+        })
+        .catch( error => { 
+            NotifyBad("Failed to change status :("); 
+            $("#aboutLoading").hide();
+        })
+
+        $("#aboutLoading").hide();
+        hideAboutEdit();
+    }
+
+    $("#edit-avatar-div").mouseleave(function () {
+        $(this).fadeOut(250)
+    })
+
+    function deleteAvatar(){
+        fetch("/api/u/avatar", {
+            method: 'DELETE',
+             credentials: 'same-origin'
+        })
+        .then(data => location.reload())
+        .error(error => NotifyBad("Failed while sending request :("))
+    }
+
+    $("#avatar-input").on('change', function(){
+        if($(this).val() == null){
+            return;
+        }
+
+        if(this.files[0].size > 5000000){
+            NotifyBad("Cant upload image because File is too big! (limit is 5MB)")
+        }
+
+        var fileExt = this.files[0].name.split('.').pop().toLowerCase();
+        var isAllowedExt = false;
+
+        allowedExtensions.forEach(function (item){
+            if(item == fileExt){
+                isAllowedExt = true;
+            }
+        })
+
+        if(!isAllowedExt){
+            NotifyBad("Cant upload image. Allowed extensions is only .png .jpeg .jpg and .gif")
+        }
+
+        var data = new FormData();
+        data.append("file", this.files[0]);
+
+        fetch("/api/u/Avatar", {
+            method: 'POST',
+             credentials: 'same-origin',
+             body: data
+        })
+        .then(data => location.reload())
+        .error(error => NotifyBad("Failed while uploading new avatar to server :("))
+    })
+
+    function UpdateProfileOnline(){
+        $.get("/api/u/@Model.Nickname/Online", function (responseData) 
+        { 
+            if(responseData === true){
+                $("#Online").html("<i class='bi bi-lightning-charge-fill'></i> Currently Online");
+            }
+            else{
+                $.get("/api/u/@Model.Nickname/LastOnline", function (data) {
+                    $("#Online").html(`<i class="bi bi-clock-history"></i> Last Online: ${data}`);
+                });
+            }
+        });
+    }
+
+    window.setInterval(UpdateProfileOnline, 10000);
+    UpdateProfileOnline();
+
+    function MakeLinksClickableInsideElement(item){
+        $(this).html($(this).html().replace(urlRegex, '<a href="$1">$1</a>'));
+    }
+
+    $(".post-content").each(MakeLinksClickableInsideElement);
+
+    function SetEmotion(postId, isLike, element){
+
+        ChangeEmotionBtnStyles(element, true)
+
+        var myFormData = new FormData();
+        myFormData.append("likeIt", isLike);
+
+        fetch(`/api/Post/${postId}/Emotion`, {
+            method: "PUT",
+            credentials: "same-origin",
+            body: myFormData,
+        })
+        .catch( error => { 
+            NotifyBad("Failed to set emotion to post :("); 
+            ChangeEmotionBtnStyles(element, true);
+        });
+    }
+
+    function ChangeEmotionBtnStyles(element, changeNumber){
+
+        var newClass = "";
+        var spanElem = $(element).children().first();
+        var spanValue = Number(spanElem.text());
+
+        if(element.classList[2].includes("outline")){
+            newClass = "active-btn btn-" + element.classList[2].split('-').pop();
+
+            if(changeNumber){
+                spanElem.html(++spanValue);
+            }
+
+            var btnParent = $(element).parent();
+            var btnToUnclick = $(btnParent).find(".active-btn");
+            if(btnToUnclick.length > 0 ){
+                ChangeEmotionBtnStyles(btnToUnclick[0], true);
+            }
+
+        }else{
+            newClass = "disabled-btn btn-outline-" + element.classList[2].split('-').pop();
+            if(changeNumber){
+                spanElem.html(--spanValue);
+            }
+        }
+        element.className = `btn ${newClass}`;
+    }
+
+    function PostInputOnChange(){
+        $("#postContent").val($("#PostInputContent").text());
+    }
+
+</script>
+
+<!--Enable tooltips-->
+<script>
+$(function () {
+  $('[data-bs-toggle="tooltip"]').tooltip()
+})
+</script>
+
+

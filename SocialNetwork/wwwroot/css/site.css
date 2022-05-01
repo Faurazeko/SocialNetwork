@@ -1,0 +1,81 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+    background-color: #101010;
+    font-family: 'Roboto', sans-serif;
+}
+
+.item-bg-noround {
+    background-color: #102B3F;
+    color: #E8E8E8;
+}
+
+.item-bg {
+    background-color: #102B3F;
+    color: #E8E8E8;
+    border-radius: 0.3rem;
+}
+
+#postCreatedDate::before {
+    /* we want to draw a line, so no content needed */
+    content: '';
+    /* this sets the position and size of the pseudo-element */
+    position: absolute;
+    top: -10%;
+    width: 40%;
+    height: 1px;
+    background-color: gray;
+    /* draw behind child elements */
+    z-index: 10;
+}
+
+.rainbow-border {
+    border: 2px solid transparent;
+    border-image: linear-gradient(to bottom right, #b827fc 0%, #2c90fc 25%, #b8fd33 50%, #fec837 75%, #fd1892 100%);
+    border-image-slice: 1;
+    background-color: #102B3F;
+}
+
+.notification{
+    border-radius: 0.5rem;
+    width:100%;
+    display:block;
+}
+
+.checkmark {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    stroke-width: 2;
+    stroke: #B2F74F;
+    stroke-miterlimit: 10;
+    stroke-dashoffset: 0;
+}
+
+::selection {
+    background: #6247AA;
+    color: white;
+}
+
+.menu-item {
+    color: white;
+    transition: background-color 0.3s;
+}
+
+.menu-item:hover{
+    background: rgb(75, 75, 75);
+}

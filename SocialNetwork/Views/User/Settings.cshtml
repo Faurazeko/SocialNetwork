@@ -1,0 +1,89 @@
+﻿@model SocialNetwork.Models.User;
+
+<div class="container">
+
+    <div class="item-bg mb-3 p-2">
+        <h1>Account information</h1>
+        <span>
+            Username: @Model.Nickname <br />
+            ID: @Model.Id <br />
+            Created DateTime: @Model.CreatedDateTime <br />
+            Trollars: @Model.Trollars <br />
+            Posts: @Model.Posts.Count() <br />
+            Blocked?: @Model.IsAdmin <br />
+            Admin?: @Model.IsAdmin <br />
+        </span>
+    </div>
+
+
+    <h1 class="text-danger" style="text-align:center;">DANGER ZONE</h1>
+        <div class="item-bg mb-3 p-2">
+        <h1>Logout from all devices</h1>
+        <p>Makes all sessions for your account go brrr</p>
+        <button class="btn btn-outline-warning" onclick="LogOutEverywhere()">Make them go brrr</button>
+    </div>
+
+    <div class="item-bg mb-3 p-2">
+        <h1>Change password</h1>
+        <p>This action will also logout your account from all devices.</p>
+        <input id="newPassword" type="password" placeholder="New password"/>
+        <button class="btn btn-outline-warning" onclick="ChangePassword()">Send</button>
+    </div>
+
+    <div class="item-bg mb-3 p-2" style="border: 0.25rem solid red;">
+        <h1>Delete accout</h1>
+        <p>Very <span class="text-danger">dangerous</span> action. If you really want to <span class="text-danger">delete your account</span> - type your nickname below.</p>
+        <input id="usernameText" type="text" placeholder="Your nickname here..."/>
+        <button class="btn btn-outline-danger" onclick="DeleteAccount()">DELETE ACCOUNT</button>
+    </div>
+</div>
+
+<script>
+    function LogOutEverywhere(){
+        $.get("/api/u/ForceLogout").then(r => location.reload());
+    }
+
+    function ChangePassword(){
+        fetch(`/api/u/Password?username=@User.FindFirst("username").Value.ToLower()&password=${$("#newPassword").val()}`, {
+            method: "PUT",
+            credentials: "same-origin",
+        })
+        .then(response => {
+            if(response.status === 200){
+                location.reload();
+            }
+            else{
+                throw "not succ :(";
+            }
+        })
+        .catch( error => { 
+            NotifyBad("Failed to change password :(");
+        })
+    }
+
+    function DeleteAccount(){
+
+        var username = "@User.FindFirst("username").Value";
+
+        if(username != $("#usernameText").val()){
+            NotifyBad("Username input does not match with your nickname.")
+            return;
+        }
+
+        fetch(`/api/u/${username}`, {
+            method: "DELETE",
+            credentials: "same-origin",
+        })
+        .then(response => {
+            if(response.status === 200){
+                location.reload();
+            }
+            else{
+                throw "not succ :(";
+            }
+        })
+        .catch( error => { 
+            NotifyBad("Failed to delete account.");
+        })
+    }
+</script>
