@@ -200,10 +200,10 @@ namespace SocialNetwork.Controllers
         {
             var user = _mapper.Map<User>(userDto);
 
-            var userWithSameUsername = _repository.GetUser(user.Nickname);
+            var usernameAvailable = _repository.CheckUsernameAvailability(user.Nickname);
 
-            if(userWithSameUsername != null)
-                return BadRequest("User with the same username already exists!");
+            if(!usernameAvailable)
+                return BadRequest("Username is unavailable!");
 
             user.CreatedDateTime = DateTime.Now;
             user.LastOnlineTime = DateTime.Now;

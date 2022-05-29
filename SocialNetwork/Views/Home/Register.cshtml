@@ -14,6 +14,7 @@
         <input class="form-control mt-1" type="password" id="password1" name="password" placeholder="Password" onkeyup="ValidatePasswords()"/>
         <input class="form-control mt-1" type="password" id="password2" name="password" placeholder="Repeat password" onkeyup="ValidatePasswords()"/>
         <button class="btn mt-1 btn-primary" style="width:100%;" onclick="Register();" type="button">Register!</button>
+        <p class="text-success" id="succMsg" style="display:none;">Accout created! You can go to the login page now!</p>
     </form>
 </div>
 
@@ -36,7 +37,15 @@ function Register() {
             
             
         })
-            .then(data => NotifySucc("Account created!"))
+            .then(data => {
+                if (data.status == 201) {
+                    NotifySucc("Account created! You can go to login page now!");
+                    $("#succMsg").attr("style", "");
+                }
+                else {
+                    throw "not succ :(";
+                }
+            })
             .catch(error => NotifyBad("Failed while creating your account :("));
     }
     else {

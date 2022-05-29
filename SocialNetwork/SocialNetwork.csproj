@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\FileStorage\Posts\Faurazeko\" />
+    <Folder Include="wwwroot\FileStorage\Posts\" />
     <Folder Include="wwwroot\FileStorage\Users\" />
   </ItemGroup>
 
