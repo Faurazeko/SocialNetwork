@@ -25,12 +25,14 @@ namespace SocialNetwork
                 var loginTime = Convert.ToDateTime(context.User.FindFirst("logInTime").Value);
                 var username = context.User.FindFirst("username").Value.ToLower();
 
-                if (loginTime < _repository.GetUser(username).ForcedLogOutTime)
-                {
-                    context.Response.Redirect("/home/logout");
-                }
-            }
+                var user = _repository.GetUser(username);
 
+                if(user == null)
+                    context.Request.Path = "/home/logout";
+                else if (loginTime < user.ForcedLogOutTime)
+                    context.Response.Redirect("/home/logout");
+
+            }
 
             await _next.Invoke(context);
         }

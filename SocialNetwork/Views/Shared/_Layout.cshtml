@@ -40,7 +40,7 @@
             @if (User.Identity.IsAuthenticated)
             {
                 <span>
-                    <img style="max-height:100%; width:2.5rem; height:2.5rem; border-radius:50%;" src="@User.Claims.FirstOrDefault(c => c.Type == "avatarPath").Value"/>
+                    <img style="max-height:100%; width:2.5rem; height:2.5rem; border-radius:50%;" src="@Context.Items["AvatarPath"]"/>
                     <span><a href="/u/id0" style="text-decoration:none; color:white;">@User.Claims.FirstOrDefault(c => c.Type == "username").Value</a></span>
                     <span class="text-warning"><a class="text-warning" style="text-decoration:none;" href="/home/logout">(Logout)</a></span>
                 </span>
@@ -57,7 +57,7 @@
         
         
 
-        <div class="row m-0" style="height:100%; width:25vw; position: absolute; z-index:228; right:0;">
+        <div class="row m-0" style="height:100vh; width:25vw; position: absolute; z-index:228; right:0;">
             <div class="col-lg" >
                 <div id="notif-col" class="text-wrap text-break text-white m-3" style="position: absolute; bottom: 0;">
                 </div>
@@ -86,7 +86,7 @@
                     </div>
                 </a>
 
-                <a style="text-decoration:none; color:white;" href="#"> 
+                <a style="text-decoration:none; color:white;" href="/u/Friends"> 
                     <div class="p-1 mb-2 text-white menu-item" style="border-radius:0.25rem;">
                             <i class="bi bi-person"></i> Friends
                     </div>
@@ -105,7 +105,7 @@
                 </a>
            </div>
             <div class="col-sm-6">@RenderBody()</div>
-            <div class="col-sm-3" ></div>
+            <div class="col-sm-3"></div>
         </div> 
     </div>
 

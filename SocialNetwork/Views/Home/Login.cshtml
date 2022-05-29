@@ -3,14 +3,14 @@
     var errorMsg = TempData["Error"] as string;
 }
 
-<div class="container-fluid text-white p-3 bg-warning" >
-    <h1 class="text-center">Login page</h1>
-</div>
-
 <div class="d-flex align-items-center justify-content-center mt-5" style="height: 100%;">
-
-
     <form action="/home/login?ReturnUrl=@System.Net.WebUtility.UrlEncode(returnUrl)" method="post">
+
+        <div class="container-fluid text-white text-center" >
+            <h1>Login page</h1>
+            <a class="text-white" style="font-size:1.25rem;" href="/home/register">Go to register page</a>
+        </div>
+
         @if (!string.IsNullOrEmpty(errorMsg))
         {
             <div class="alert alert-danger" role="alert">

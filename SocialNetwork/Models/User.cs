@@ -27,5 +27,22 @@ namespace SocialNetwork.Models
         public ICollection<Post> Posts { get; set; } = new List<Post>();
         [DataType("datetime2")]
         public DateTime ForcedLogOutTime { get; set; } = DateTime.MinValue;
+        public ICollection<FriendsRelation> Friends1 { get; set; } = new List<FriendsRelation>();
+        public ICollection<FriendsRelation> Friends2 { get; set; } = new List<FriendsRelation>();
+        public ICollection<FriendsRelation> Friends { 
+            get {
+                var result = new List<FriendsRelation>();
+                result.AddRange(Friends1);
+                result.AddRange(Friends2);
+                
+                return result;
+            }
+        }
+        public string AvatarPath { get; set; } = "/FileStorage/Default/avatar.png";
+
+        //Settings
+        public bool IsFriendsHidden { get; set; } = false;
+        public bool IsHiddenInFriends { get; set; } = false;
+        public bool IsOnlineHidden { get; set; } = false;
     }
 }

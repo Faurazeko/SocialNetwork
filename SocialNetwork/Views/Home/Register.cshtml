@@ -1,0 +1,103 @@
+﻿<div class="d-flex align-items-center justify-content-center mt-5" style="height: 100%;">
+    <form>
+
+        <div class="container-fluid text-white text-center" >
+            <h1>Register page</h1>
+            <a class="text-white" style="font-size:1.25rem;" href="/home/login">Go to login page</a>
+        </div>
+
+
+        <p id="usernameValidationText" class="text-muted my-0">Start typing your nickname...</p>
+        <input class="form-control" id="usernameInput" type="text" name="username" 
+        placeholder="Username (1-32 symbols, numbers, uppercase and lowercase letters, - and _ allowed)" onkeyup="ValidateNickname()"/>
+        <p id="passwordsValidationText" class="text-muted my-0">Start typing your password...</p>
+        <input class="form-control mt-1" type="password" id="password1" name="password" placeholder="Password" onkeyup="ValidatePasswords()"/>
+        <input class="form-control mt-1" type="password" id="password2" name="password" placeholder="Repeat password" onkeyup="ValidatePasswords()"/>
+        <button class="btn mt-1 btn-primary" style="width:100%;" onclick="Register();" type="button">Register!</button>
+    </form>
+</div>
+
+<script>
+
+var usernameValidationElement = $("#usernameValidationText");
+var PasswordsValidationElement = $("#passwordsValidationText");
+const regex = new RegExp("^[A-Za-z\\d_-]{1,32}$");
+
+function Register() {
+    var isUsernameValid = ValidateNickname();
+    var isPasswordsValid = ValidatePasswords();
+
+    if (isUsernameValid && isPasswordsValid) {
+        fetch("/api/u", {
+            headers: new Headers({'content-type': 'application/json'}),
+            method: "POST",
+            credentials: 'same-origin',
+            body: JSON.stringify({ Nickname: $("#usernameInput").val(), Password: $("#password1").val() }),
+            
+            
+        })
+            .then(data => NotifySucc("Account created!"))
+            .catch(error => NotifyBad("Failed while creating your account :("));
+    }
+    else {
+        NotifyBad("Cant register you while your username/passwords is invalid!");
+    }
+}
+
+function ValidateNickname() {
+    var username = $("#usernameInput").val();
+
+    var isValid = regex.test(username);
+
+    if (!isValid) {
+        usernameValidationElement.text("Username invalid");
+        usernameValidationElement.attr("class", "text-danger my-0");
+        return;
+    }
+
+    fetch(`/api/u/${username}`, {
+        method: 'GET',
+        credentials: 'same-origin'
+    })
+    .then(data => data.json())
+    .then(data => 
+        { 
+        if (data.available) {
+            usernameValidationElement.text("Username available!");
+            usernameValidationElement.attr("class", "text-success my-0");
+        }
+        else{
+            usernameValidationElement.text("Username is unavailable :(");
+            usernameValidationElement.attr("class", "text-danger my-0");
+        }
+        })
+        .catch(error => {
+            usernameValidationElement.text("Failed cheching nickname");
+            usernameValidationElement.attr("class", "text-muted my-0");
+        })
+
+    return isValid;
+}
+
+function ValidatePasswords() {
+    var passwordInput1 = $("#password1");
+    var passwordInput2 = $("#password2");
+
+    var isValid = (passwordInput1.val() == passwordInput2.val());
+
+    if (passwordInput1 == "" && asswordInput1 == "") {
+        isValid = false;
+    }
+
+    if (!isValid) {
+        PasswordsValidationElement.text("Passwords doesnt match");
+        PasswordsValidationElement.attr("class", "my-0 text-danger");
+    }
+    else {
+        PasswordsValidationElement.text("Passwords OK!");
+        PasswordsValidationElement.attr("class", "my-0 text-success");
+    }
+
+    return isValid;
+}
+</script>

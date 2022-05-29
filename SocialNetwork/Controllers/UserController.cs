@@ -46,26 +46,66 @@ namespace SocialNetwork.Controllers
                     return Redirect("/home/login?ReturnUrl=%2Fu%2id0");
             }
 
-            if(user == null)
+            if (user == null)
                 return NotFound();
 
-            string avatarPath = $"{_fileStoragePath}\\Users\\{user.Nickname}\\avatar.png";
+            var avatarPath = $"{_fileStoragePath}\\Users\\{user.Nickname}\\avatar.png";
 
             if (System.IO.File.Exists(avatarPath))
-                ViewData["AvatarPath"] = $"/FileStorage/Users/{user.Nickname}/avatar.png";
+                avatarPath = $"/FileStorage/Users/{user.Nickname}/avatar.png";
             else
-                ViewData["AvatarPath"] = $"/FileStorage/Default/avatar.png";
+                avatarPath = $"/FileStorage/Default/avatar.png";
 
+            HttpContext.Items["PoftileAvatarPath"] = avatarPath;
+
+            if (user == null)
+                return NotFound();
+
+            if (User.Identity.IsAuthenticated)
+            {
+                var relation = _repository.GetFriendRelation(user.Id, Convert.ToInt32(User.FindFirst("userId").Value));
+
+                var relationString = "";
+
+                if (relation != null)
+                {
+                    if (relation.IsApproved)
+                        relationString = "You are friend for this user";
+                    else if (relation.User1 == user)
+                        relationString = "This user subscribed to you";
+                    else
+                        relationString = "You subscribed to this user";
+                }
+
+                ViewData["FriendRelation"] = relationString;
+
+                ViewData["IsInRelation"] = (relation != null).ToString();
+            }
             return View("Profile", user);
         }
 
-        [HttpGet("settings")]
+        [HttpGet("Settings")]
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
         public IActionResult SettingsPage()
         {
             User user = _repository.GetUser(User.FindFirst("username").Value.ToLower());
 
+            if (user == null)
+                return Redirect("/home/logout");
+
             return View("Settings", user);
+        }
+
+        [HttpGet("Friends")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+        public IActionResult FriendsPage()
+        {
+            User user = _repository.GetUser(User.FindFirst("username").Value.ToLower());
+
+            if (user == null)
+                return Redirect("/home/logout");
+
+            return View("Friends", user);
         }
     }
 }

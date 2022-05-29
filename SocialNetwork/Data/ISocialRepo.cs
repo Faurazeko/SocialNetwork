@@ -29,5 +29,17 @@ namespace SocialNetwork.Data
         public void PostRemoveEmotion(int postId, int userId);
         public int[] GetPostEmotions(int postId);
         public bool? GetUserEmotion(int userId, int postId);
+
+        //Friends
+        public bool FriendRelationExists(int user1Id, int user2Id);
+        public FriendsRelation GetFriendRelation(int user1Id, int user2Id);
+        public void AddAsFriend(int user1Id, int user2Id, bool ignore = false);
+        public void RemoveAsFriend(int user1Id, int user2Id);
+
+        //Friends options
+        public void ChangeFriendsVisibility(int userId, bool value);
+
+        //Other
+        public bool CheckUsernameAvailability(string username);
     }
 }

@@ -38,7 +38,7 @@ namespace SocialNetwork.Data
                     new User() 
                     { 
                         Nickname = "Faurazeko", Password = "Faurazeko", IsAdmin = true, IsBlocked = false, CreatedDateTime = DateTime.Now, AboutText = "",
-                        IsOnline = false, LastOnlineTime = DateTime.MinValue, Trollars = 0
+                        IsOnline = false, LastOnlineTime = DateTime.MinValue, Trollars = 0,
                     },
                     new User() 
                     { 

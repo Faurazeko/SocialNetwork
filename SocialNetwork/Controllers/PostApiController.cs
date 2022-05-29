@@ -126,6 +126,7 @@ namespace SocialNetwork.Controllers
 
         [HttpGet("{postId}/Emotion")]
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+            
         public IActionResult GetEmotion(int postId)
         {
             User user = _repository.GetUser(User.FindFirst("username").Value.ToLower());
@@ -136,24 +137,28 @@ namespace SocialNetwork.Controllers
             return Ok(new { islike = _repository.GetUserEmotion(user.Id, postId) });
         }
 
-        //[HttpPut("{postId}")]
-        //[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-        //public IActionResult EditPost(int postId, [FromBody] string contentNew)
-        //{
-        //    Post post = _repository.GetPost(postId);
-        //    var username = User.FindFirst("username").Value;
-        //    var userId = Convert.ToInt32(User.FindFirst("userId").Value);
+        [HttpPut("{postId}")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+        public IActionResult EditPost(
+            int postId, 
+            [FromForm] string contentNew, 
+            [FromForm(Name = "filesToDelete")] List<string> filesToDelete, 
+            [FromForm(Name = "filesToUpload")] List<IFormFile> filesToUpload)
+        {
+            Post post = _repository.GetPost(postId);
+            var username = User.FindFirst("username").Value;
+            var userId = Convert.ToInt32(User.FindFirst("userId").Value);
 
-        //    if ((post == null) || (post.UserId != userId))
-        //        return RedirectToAction("UserProfile", new { userNickName = username });
+            if ((post == null) || (post.UserId != userId))
+                return RedirectToAction("UserProfile", new { userNickName = username });
 
-        //    post.Content = contentNew;
-        //    post.IsEdited = true;
-        //    post.EditedTime = DateTime.Now;
+            post.Content = contentNew;
+            post.IsEdited = true;
+            post.EditedTime = DateTime.Now;
 
-        //    _repository.SaveChanges();
+            _repository.SaveChanges();
 
-        //    return Ok();
-        //}
+            return Ok();
+        }
     }
 }

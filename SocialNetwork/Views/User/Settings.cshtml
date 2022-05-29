@@ -10,14 +10,27 @@
             Created DateTime: @Model.CreatedDateTime <br />
             Trollars: @Model.Trollars <br />
             Posts: @Model.Posts.Count() <br />
-            Blocked?: @Model.IsAdmin <br />
+            Blocked?: @Model.IsBlocked <br />
             Admin?: @Model.IsAdmin <br />
         </span>
     </div>
 
+    <h1 style="text-align:center;" class="text-white">Friends</h1>
+        <div class="item-bg mb-3 p-2">
+            <h1>Hide my friends and subscribers</h1>
+            <p class="mb-1">This will make your subscribers, friends and subscribed to count visible as 0 in your profile</p>
+            <div class="form-check mb-2 mt-0">
+                <input class="form-check-input" id="HideFriendsCheckbox" type="checkbox" />
+                <label class="form-check-label" for="HideFriendsCheckbox">
+                    I want it!
+                </label>
+            </div>
+            <button class="btn btn-outline-warning" onclick="ChangeFriendsVisibility()">Save</button>
+        </div>
+
 
     <h1 class="text-danger" style="text-align:center;">DANGER ZONE</h1>
-        <div class="item-bg mb-3 p-2">
+    <div class="item-bg mb-3 p-2">
         <h1>Logout from all devices</h1>
         <p>Makes all sessions for your account go brrr</p>
         <button class="btn btn-outline-warning" onclick="LogOutEverywhere()">Make them go brrr</button>
@@ -86,4 +99,57 @@
             NotifyBad("Failed to delete account.");
         })
     }
+
+    function ChangeFriendsVisibility() {
+        var username = "@User.FindFirst("username").Value";
+
+        var data = new FormData();
+        data.append("hide", $("#HideFriendsCheckbox").prop("checked"))
+
+        fetch(`/api/u/${username}/Friends/Hide`, {
+            method: "PUT",
+            credentials: "same-origin",
+            body: data
+        })
+        .then(response => {
+            if(response.status === 200){
+                NotifySucc("Friends visibility saved!");
+            }
+            else{
+                throw "not succ :(";
+            }
+        })
+        .catch( error => { 
+            NotifyBad("Failed to change friends visibility");
+        })
+    }
+
+    function ChangeInFriendsVisibility() {
+        var username = "@User.FindFirst("username").Value";
+
+        var data = new FormData();
+        data.append("hide", $("#HideFriendsCheckbox").prop("checked"))
+
+        fetch(`/api/u/${username}/Friends/Hide/Me`, {
+            method: "PUT",
+            credentials: "same-origin",
+            body: data
+        })
+        .then(response => {
+            if(response.status === 200){
+                NotifySucc("In Friends visibility saved!");
+            }
+            else{
+                throw "not succ :(";
+            }
+        })
+        .catch( error => { 
+            NotifyBad("Failed to change in friends visibility");
+        })
+    }
+
+
+if ("@Model.IsFriendsHidden" == "True") {
+    $("#HideFriendsCheckbox").prop('checked', true);
+}
 </script>

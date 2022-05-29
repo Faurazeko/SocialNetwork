@@ -12,56 +12,45 @@ namespace SocialNetwork.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly ISocialRepo _userRepo;
+        private readonly ISocialRepo _socialRepo;
         private readonly AppDbContext _dbContext;
         private readonly IWebHostEnvironment _env;
         private readonly string _fileStoragePath;
 
-        public HomeController(ILogger<HomeController> logger, ISocialRepo userRepo, AppDbContext dbContext, IWebHostEnvironment env)
+        public HomeController(ILogger<HomeController> logger, ISocialRepo socialRepo, AppDbContext dbContext, IWebHostEnvironment env)
         {
             _logger = logger;
-            _userRepo = userRepo;
+            _socialRepo = socialRepo;
             _dbContext = dbContext;
             _env = env;
             _fileStoragePath = $"{_env.WebRootPath}\\FileStorage";
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
 
         [HttpGet]
         public IActionResult Login(string returnUrl)
         {
+            if (User.Identity.IsAuthenticated)
+                return Redirect("/");
+
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
-        public IActionResult Denied()
-        {
-            return View();
-        }
+        public IActionResult Denied() => View();
 
         [NonAction]
         private ClaimsPrincipal generateClaimsPrincipal(User user)
         {
-            string avatarPath = $"{_fileStoragePath}\\Users\\{user.Nickname}\\avatar.png";
-
-            if (System.IO.File.Exists(avatarPath))
-                avatarPath = $"/FileStorage/Users/{user.Nickname}/avatar.png";
-            else
-                avatarPath = $"/FileStorage/Default/avatar.png";
-
             var claims = new List<Claim>()
-                        {
-                            new Claim("username", user.Nickname),
-                            new Claim("userId", user.Id.ToString()),
-                            new Claim(ClaimTypes.NameIdentifier, user.Nickname),
-                            new Claim(ClaimTypes.Name, user.Nickname),
-                            new Claim("avatarPath", avatarPath),
-                            new Claim("logInTime", DateTime.Now.ToString()),
-                        };
+            {
+                new Claim("username", user.Nickname),
+                new Claim("userId", user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Nickname),
+                new Claim(ClaimTypes.Name, user.Nickname),
+                new Claim("logInTime", DateTime.Now.ToString()),
+            };
 
             if (user.IsAdmin)
                 claims.Add(new Claim(ClaimTypes.Role, "Admin"));
@@ -78,6 +67,9 @@ namespace SocialNetwork.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string username, string password, string returnUrl)
         {
+            if (User.Identity.IsAuthenticated)
+                return Redirect("/");
+
             foreach (var item in _dbContext.Users)
             {
                 if (item.Nickname == username && item.Password == password)
@@ -94,6 +86,15 @@ namespace SocialNetwork.Controllers
 
             TempData["Error"] = "Error. Username or password is incorrect. :(";
             return Redirect("login");
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            if (User.Identity.IsAuthenticated)
+                return Redirect("/");
+
+            return View();
         }
 
         [HttpGet]

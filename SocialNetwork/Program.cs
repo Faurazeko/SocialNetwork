@@ -12,6 +12,7 @@ var configuration = provider.GetRequiredService<IConfiguration>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<ISocialRepo, SocialRepo>();
+builder.Services.AddHttpContextAccessor();
 
 Console.WriteLine("--> using InMem Db");
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -72,6 +73,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<UserOnlineChecker>();
 app.UseMiddleware<UserSecurityMiddleware>();
+app.UseMiddleware<OnGetEvents>();
 
 app.MapControllerRoute(
     name: "default",

@@ -79,3 +79,14 @@ body {
 .menu-item:hover{
     background: rgb(75, 75, 75);
 }
+
+.profileItem {
+    text-align: center;
+    border: 0.15rem solid #6247AA;
+    border-radius: 10px;
+    transition: background-color 0.3s;
+}
+
+.profileItem:hover {
+    background: #6247AA;
+}

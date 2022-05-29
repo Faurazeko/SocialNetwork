@@ -1,0 +1,228 @@
+﻿@model SocialNetwork.Models.User;
+
+@{
+    var friends = Model.Friends.Where(f => f.IsApproved).Select(f =>
+    {
+        if(f.User1 == Model)
+            return f.User2;
+        else
+            return f.User1;
+    });
+    var subscribers = Model.Friends.Where(f => ((!f.IsApproved && f.IsIgnored) && (f.User1 != Model))).Select(f => f.User1);
+    var subscribedTo = Model.Friends.Where(f => (!f.IsApproved && (f.User1 == Model))).Select(f => f.User2);
+    var onConsideration = Model.Friends.Where(f => ((!f.IsApproved && (f.User1 != Model)) && !f.IsIgnored)).Select(f => f.User1);
+}
+
+<style>
+/* Style the tab */
+.tab {
+  /*overflow: hidden;*/
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  color: white;
+}
+
+</style>
+
+<div class="container">
+
+    <div class="row tab">
+      <button class="tablinks col" onclick="OpenTab(event, 'Friends')">Friends</button>
+      <button class="tablinks col" onclick="OpenTab(event, 'Subscribers')">Subscribers</button>
+      <button class="tablinks col" onclick="OpenTab(event, 'SubscribedTo')">Subscribed to</button>
+      <button id="OnConsiderationBtn" class="tablinks col" onclick="OpenTab(event, 'OnConsideration')">On consideration</button>
+    </div>
+    
+    <div id="Friends" class="tabcontent">
+      <h3 style="text-align:center">Friends</h3>
+        @foreach(var randomHuman in friends)
+        {
+            <div class="item-bg p-3">
+                <span>
+                    <a style="text-decoration:none; color:white;" href="/u/@randomHuman.Nickname">
+                        <img src=@randomHuman.AvatarPath  style="width:10rem; height:10rem; border-radius:50%; white-space:normal; float:left;" />
+                        <h1 class="mt-0" style="font-size:300%;">@randomHuman.Nickname</h1>
+                    </a>
+                </span>
+                <br/>
+                <br/>
+
+                <div class="row">
+                    <button class="btn btn-warning mx-1 col" onclick="RemoveFriend('@randomHuman.Nickname')">
+                        Remove friend
+                    </button>
+                    <button class="btn btn-info mx-1 col" onclick="alert('Not implemented :(')">
+                        Message
+                    </button>
+                    <button class="btn btn-danger mx-1 col" onclick="alert('Not implemented :(')">
+                        Block
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+    
+    <div id="Subscribers" class="tabcontent">
+      <h3 style="text-align:center">Subscribers</h3>
+              @foreach(var randomHuman in subscribers)
+        {
+            <div class="item-bg p-3">
+                <span>
+                    <a style="text-decoration:none; color:white;" href="/u/@randomHuman.Nickname">
+                        <img src=@randomHuman.AvatarPath  style="width:10rem; height:10rem; border-radius:50%; white-space:normal; float:left;" />
+                        <h1 class="mt-0" style="font-size:300%;">@randomHuman.Nickname</h1>
+                    </a>
+                </span>
+                <br/>
+                <br/>
+
+                <div class="row">
+                    <button class="btn btn-warning mx-1 col" onclick="RemoveFriend('@randomHuman.Nickname')">
+                        Unsubscribe
+                    </button>
+                    <button class="btn btn-info mx-1 col" onclick="alert('Not implemented :(')">
+                        Message
+                    </button>
+                    <button class="btn btn-danger mx-1 col" onclick="alert('Not implemented :(')">
+                        Block
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+    
+    <div id="SubscribedTo" class="tabcontent">
+      <h3 style="text-align:center">Subscribed to</h3>
+        @foreach(var randomHuman in subscribedTo)
+        {
+            <div class="item-bg p-3">
+                <span>
+                    <a style="text-decoration:none; color:white;" href="/u/@randomHuman.Nickname">
+                        <img src=@randomHuman.AvatarPath  style="width:10rem; height:10rem; border-radius:50%; white-space:normal; float:left;" />
+                        <h1 class="mt-0" style="font-size:300%;">@randomHuman.Nickname</h1>
+                    </a>
+                </span>
+                <br/>
+                <br/>
+
+                <div class="row">
+                    <button class="btn btn-warning mx-1 col" onclick="RemoveFriend('@randomHuman.Nickname')">
+                        Unsubscribe
+                    </button>
+                    <button class="btn btn-info mx-1 col" onclick="alert('Not implemented :(')">
+                        Message
+                    </button>
+                    <button class="btn btn-danger mx-1 col" onclick="alert('Not implemented :(')">
+                        Block
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div id="OnConsideration" class="tabcontent">
+      <h3 style="text-align:center">On consideration</h3>
+
+        @foreach(var randomHuman in onConsideration)
+        {
+            <div class="item-bg p-3">
+                <span>
+                    <a style="text-decoration:none; color:white;" href="/u/@randomHuman.Nickname">
+                        <img src=@randomHuman.AvatarPath  style="width:10rem; height:10rem; border-radius:50%; white-space:normal; float:left;" />
+                        <h1 class="mt-0" style="font-size:300%;">@randomHuman.Nickname</h1>
+                    </a>
+                </span>
+                <br/>
+                <br/>
+
+                <div class="row">
+                    <button class="btn btn-success mx-1 col" onclick="ApproveFriend('@randomHuman.Nickname')">
+                        Approve
+                    </button>
+                    <button class="btn btn-secondary mx-1 col" onclick="IgnoreFriend('@randomHuman.Nickname')">
+                        Ignore
+                    </button>
+                    <button class="btn btn-info mx-1 col" onclick="alert('Not implemented :(')">
+                        Message
+                    </button>
+                    <button class="btn btn-danger mx-1 col" onclick="alert('Not implemented :(')">
+                        Block
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+    
+    <script>
+        function OpenTab(evt, tabName) {
+          var i, tabcontent, tablinks;
+          tabcontent = $(".tabcontent");
+          for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+          }
+          tablinks = $(".tablinks");
+          for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+          }
+          $(`#${tabName}`).css("display", "block");
+          evt.target.className += " active";
+        }
+
+    $("#OnConsiderationBtn").click();
+
+    function ApproveFriend(friendName){
+        fetch(`/api/u/${friendName}/Friend`, {
+            method: 'POST',
+            credentials: 'same-origin'
+        })
+        .then(data => location.reload())
+        .catch(error => NotifyBad("Failed while adding friend :("))
+    }
+
+    function IgnoreFriend(friendName){
+        fetch(`/api/u/${friendName}/Friend/Ignore`, {
+            method: 'PUT',
+            credentials: 'same-origin'
+        })
+        .then(data => location.reload())
+        .catch(error => NotifyBad("Failed while ignoring friend request :("))
+    }
+
+    function RemoveFriend(friendName){
+        fetch(`/api/u/${friendName}/Friend`, {
+            method: 'DELETE',
+            credentials: 'same-origin'
+        })
+        .then(data => location.reload())
+        .catch(error => NotifyBad("Failed while deleting friend :("))
+    }
+
+    </script>
+</div>
